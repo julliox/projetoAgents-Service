@@ -4,9 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 public record TurnCreateDTO(
-        Long id,
-        String typeTurn,
-        String nomeAgente,
-        List<LocalDate> dataTurno,
-        Long clientId
+        Long tipoTurnoId,    // Referência ao TipoTurno
+        Long agentId,
+        List<LocalDate> dataTurno
 ) {}

@@ -6,31 +6,27 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.time.LocalDate;
-
+import java.math.BigDecimal;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 @Builder
 @Entity
-@Table(name = "TBL_TURN")
-public class TurnEntity {
+@Table(name = "TBL_TIPO_TURNO")
+public class TipoTurnoEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "TIPO_TURNO_ID", nullable = false)
-    private TipoTurnoEntity tipoTurno;
+    @Column(name = "DESCRICAO", nullable = false, unique = true)
+    private String descricao;
 
-    @Column(name = "DATE")
-    private LocalDate dataTurno;
+    @Column(name = "VALOR_JUNIOR", nullable = false)
+    private BigDecimal valorJunior;
 
-    @OneToOne
-    @JoinColumn(name = "AGENT_ID")
-    private AgentEntity agent;
-
+    @Column(name = "VALOR_SENIOR", nullable = false)
+    private BigDecimal valorSenior;
 }

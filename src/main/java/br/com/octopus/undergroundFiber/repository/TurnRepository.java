@@ -6,15 +6,27 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface TurnRepository extends JpaRepository<TurnEntity, Long> {
 
-    List<TurnEntity> findAllByClientId(Long id);
+    List<TurnEntity> findAllByAgentId(Long id);
 
-    Optional<TurnEntity> findByClientAndDataTurno(AgentEntity client, LocalDate dataTurno);
-    List<TurnEntity> findByClientAndDataTurnoIn(AgentEntity client, List<LocalDate> dataTurno);
+    Optional<TurnEntity> findByAgentAndDataTurno(AgentEntity agent, LocalDate dataTurno);
+    List<TurnEntity> findByAgentAndDataTurnoIn(AgentEntity agent, List<LocalDate> dataTurno);
+    List<TurnEntity> findByDataTurnoBetween(LocalDateTime start, LocalDateTime end);
+
+    /**
+     * Busca os turnos de um agente específico dentro de um intervalo de datas.
+     *
+     * @param agentId ID do agente.
+     * @param start   Data e hora de início.
+     * @param end     Data e hora de término.
+     * @return Lista de TurnEntity correspondentes.
+     */
+    List<TurnEntity> findByAgentIdAndDataTurnoBetween(Long agentId, LocalDate start, LocalDate end);
 
 }

@@ -4,8 +4,8 @@ import java.time.LocalDate;
 
 public record TurnDTO(
         Long id,
-        String typeTurn,
+        TipoTurnoDTO tipoTurno,  // Inclusão do TipoTurnoDTO
         String nomeAgente,
         LocalDate dataTurno,
-        Long clientId
+        Long agentId
 ) {}

@@ -6,6 +6,7 @@ import br.com.octopus.undergroundFiber.suport.dtos.TurnDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,31 +23,36 @@ public class TurnController {
     @GetMapping("/{id}")
     @Operation(summary = "Get a turno by ID", description = "Retrieve a turno by its unique ID")
     public ResponseEntity<TurnDTO> getProjectById(@PathVariable Long id) {
-        return ResponseEntity.ok(turnService.getProjectById(id));
+        TurnDTO turn = turnService.getProjectById(id);
+        return ResponseEntity.ok(turn);
     }
 
     @GetMapping
     @Operation(summary = "Get all turns", description = "Retrieve a list of all turns")
     public ResponseEntity<List<TurnDTO>> getAllProjects() {
-        return ResponseEntity.ok(turnService.findAll());
+        List<TurnDTO> turns = turnService.findAll();
+        return ResponseEntity.ok(turns);
     }
 
     @GetMapping("/agente/{id}")
-    @Operation(summary = "Get all turns", description = "Retrieve a list of all turns")
+    @Operation(summary = "Get all turns by Agent ID", description = "Retrieve a list of all turns for a specific agent")
     public ResponseEntity<List<TurnDTO>> getAllTurnsByAgentID(@PathVariable Long id) {
-        return ResponseEntity.ok(turnService.findAllTurnsByAgentId(id));
+        List<TurnDTO> turns = turnService.findAllTurnsByAgentId(id);
+        return ResponseEntity.ok(turns);
     }
 
     @PostMapping
     @Operation(summary = "Create a new turn", description = "Create a new turn with the provided details")
     public ResponseEntity<TurnDTO> createProject(@RequestBody TurnCreateDTO turnDto) {
-        return ResponseEntity.ok(turnService.create(turnDto));
+        TurnDTO createdTurn = turnService.create(turnDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdTurn);
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Edit a turn", description = "Edit a turn by its ID")
     public ResponseEntity<TurnDTO> updateProject(@PathVariable Long id, @RequestBody TurnDTO turnDto) {
-        return ResponseEntity.ok(turnService.update(id, turnDto));
+        TurnDTO updatedTurn = turnService.update(id, turnDto);
+        return ResponseEntity.ok(updatedTurn);
     }
 
     @DeleteMapping("/{id}")

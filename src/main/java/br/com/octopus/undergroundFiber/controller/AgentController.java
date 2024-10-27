@@ -2,6 +2,7 @@ package br.com.octopus.undergroundFiber.controller;
 
 import br.com.octopus.undergroundFiber.service.AgentService;
 import br.com.octopus.undergroundFiber.suport.dtos.AgentDTO;
+import br.com.octopus.undergroundFiber.suport.dtos.AgentProfileDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,8 +21,14 @@ public class AgentController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Get a agent by ID", description = "Retrieve a agent by its unique ID")
-    public ResponseEntity<AgentDTO> getClientById(@PathVariable Long id) {
-        return ResponseEntity.ok(agentService.getClientById(id));
+    public ResponseEntity<AgentDTO> getAgentById(@PathVariable Long id) {
+        return ResponseEntity.ok(agentService.getAgentById(id));
+    }
+
+    @GetMapping("/{id}/profile")
+    @Operation(summary = "Get a agent profile information by ID", description = "Retrieve a agent by its unique ID")
+    public ResponseEntity<AgentProfileDTO> getAgentProfileById(@PathVariable Long id) {
+        return ResponseEntity.ok(agentService.getProfileAgent(id));
     }
 
     @GetMapping
