@@ -1,7 +1,7 @@
 # Read Me First
 The following was discovered as part of building this project:
 
-* The original package name 'br.com.4quality.sga' is invalid and this project uses 'br.com.octopus.undergroundFiber' instead.
+* The original package name 'br.com.4quality.sga' is invalid and this project uses 'br.com.octopus.projectA' instead.
 
 # Getting Started
 
