@@ -19,6 +19,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class SalarioService {
@@ -102,7 +103,8 @@ public class SalarioService {
                     salarioExtra,
                     salarioSubtotal,
                     salarioCincoPorcento,
-                    salarioLiquido
+                    salarioLiquido,
+                    null
             );
 
             listaSalarios.add(salarioDTO);
@@ -170,9 +172,22 @@ public class SalarioService {
                 }
             }
             salarioSubtotal = salarioBase.add(salarioExtra);
-            salarioCincoPorcento = salarioSubtotal.multiply(new BigDecimal("0.05")).setScale(2, RoundingMode.HALF_UP);
-            salarioLiquido = salarioSubtotal.multiply(new BigDecimal("1.05")).setScale(2, RoundingMode.HALF_UP);
+
         }
+
+        List<AdicaoSalarioDTO> novaLista = adicaoSalarioRepository
+                .findAllByAgentIdAndMesAdicao(agenteId, currentYearMonth)
+                .stream()
+                .map(this::adicaoSalarioToDTO)
+                .toList();
+
+
+        for (AdicaoSalarioDTO adicaoSalarioDTO : novaLista) {
+            salarioSubtotal = salarioSubtotal.add(adicaoSalarioDTO.qtyAdicao());
+        }
+
+        salarioCincoPorcento = salarioSubtotal.multiply(new BigDecimal("0.05")).setScale(2, RoundingMode.HALF_UP);
+        salarioLiquido = salarioSubtotal.multiply(new BigDecimal("1.05")).setScale(2, RoundingMode.HALF_UP);
 
         // Adicionar ao DTO
         SalarioDTO salarioDTO = new SalarioDTO(
@@ -182,7 +197,8 @@ public class SalarioService {
                 salarioExtra,
                 salarioSubtotal,
                 salarioCincoPorcento,
-                salarioLiquido
+                salarioLiquido,
+                novaLista
         );
 
         return salarioDTO;
@@ -236,22 +252,13 @@ public class SalarioService {
                 entity.getTipoAdicao().getDesTipoAdicao()
         );
 
-        AgentDTO agentDTO = new AgentDTO(
-                entity.getAgent().getId(),
-                entity.getAgent().getName(),
-                entity.getAgent().getEmail(),
-                entity.getAgent().getPhoneNumber(),
-                entity.getAgent().getDesInfo(),
-                entity.getAgent().getAdmissionDate(),
-                entity.getAgent().getStatus()
-        );
-
         return new AdicaoSalarioDTO(
                 entity.getId(),
                 tipoAdicaoDTO,
                 entity.getQtyAdicao(),
                 entity.getMesAdicao(),
-                agentDTO
+                entity.getAgent().getId(),
+                entity.getAgent().getName()
         );
     }
 

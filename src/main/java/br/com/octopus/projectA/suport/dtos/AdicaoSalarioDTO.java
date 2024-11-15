@@ -8,5 +8,6 @@ public record AdicaoSalarioDTO(
         TipoAdicaoDTO tipoAdicao,
         BigDecimal qtyAdicao,
         YearMonth mesAdicao,
-        AgentDTO agente
+        Long agenteId,
+        String nomeAgente
 ) {}

@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -17,4 +18,5 @@ public class SalarioDTO {
     private BigDecimal salarioSubTotal;
     private BigDecimal salarioCincoPorcento;
     private BigDecimal salarioLiquido;
+    private List<AdicaoSalarioDTO> adicionais;
 }
