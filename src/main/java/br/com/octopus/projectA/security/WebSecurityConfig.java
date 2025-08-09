@@ -26,7 +26,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     AuthenticationEntryPointImpl authenticationEntryPoint;
 
     private static final String[] AUTH_WHITELIST = {
-            "/authentication/**"
+            "/authentication/**",
+            "authentication",
+            "/authentication"
     };
 
     @Bean

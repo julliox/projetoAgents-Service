@@ -24,6 +24,9 @@ public class TipoTurnoEntity {
     @Column(name = "DESCRICAO", nullable = false, unique = true)
     private String descricao;
 
+    @Column(name = "CODIGO", unique = true)
+    private String cod;
+
     @Column(name = "VALOR_JUNIOR", nullable = false)
     private BigDecimal valorJunior;
 

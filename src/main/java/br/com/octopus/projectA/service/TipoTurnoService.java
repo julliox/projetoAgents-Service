@@ -49,6 +49,7 @@ public class TipoTurnoService {
 
         TipoTurnoEntity entity = TipoTurnoEntity.builder()
                 .descricao(dto.descricao())
+                .cod(dto.cod())
                 .valorJunior(dto.valorJunior())
                 .valorSenior(dto.valorSenior())
                 .build();
@@ -71,8 +72,10 @@ public class TipoTurnoService {
         }
 
         existingEntity.setDescricao(dto.descricao());
+        existingEntity.setCod(dto.cod());
         existingEntity.setValorJunior(dto.valorJunior());
         existingEntity.setValorSenior(dto.valorSenior());
+
 
         TipoTurnoEntity updatedEntity = tipoTurnoRepository.save(existingEntity);
         return toDto(updatedEntity);
@@ -106,6 +109,7 @@ public class TipoTurnoService {
         return new TipoTurnoDTO(
                 entity.getId(),
                 entity.getDescricao(),
+                entity.getCod(),
                 entity.getValorJunior(),
                 entity.getValorSenior()
         );

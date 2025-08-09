@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -170,6 +171,7 @@ public class TurnService {
         TipoTurnoDTO tipoTurnoDTO = new TipoTurnoDTO(
                 entity.getTipoTurno().getId(),
                 entity.getTipoTurno().getDescricao(),
+                entity.getTipoTurno().getCod(),
                 entity.getTipoTurno().getValorJunior(),
                 entity.getTipoTurno().getValorSenior()
         );
@@ -181,5 +183,59 @@ public class TurnService {
                 entity.getDataTurno(),
                 entity.getAgent().getId()
         );
+    }
+
+    /**
+     * Cria novos turnos para um agente com base em uma lista de TurnCreateDTO.
+     * @param dtos Lista de dados para criação dos turnos.
+     * @return Lista de TurnDTOs representando os turnos criados.
+     */
+    @Transactional
+    public List<TurnDTO> createInLote(List<TurnCreateDTO> dtos) {
+        List<TurnDTO> createdTurnDtos = new ArrayList<>();
+
+        for (TurnCreateDTO dto : dtos) {
+            // Buscar o agente pelo ID
+            AgentEntity agent = agentService.findById(dto.agentId());
+
+            // Buscar o TipoTurno pelo ID
+            TipoTurnoEntity tipoTurno = tipoTurnoRepository.findById(dto.tipoTurnoId())
+                    .orElseThrow(() -> new EntityNotFoundException("TipoTurno não encontrado com ID " + dto.tipoTurnoId()));
+
+            // Verificar se já existe algum turno para o agente nas datas fornecidas
+            List<TurnEntity> existingTurns = turnRepository.findByAgentAndDataTurnoIn(agent, dto.dataTurno());
+
+            if (!existingTurns.isEmpty()) {
+                // Extrair as datas conflitantes
+                List<LocalDate> conflictingDates = existingTurns.stream()
+                        .map(TurnEntity::getDataTurno)
+                        .collect(Collectors.toList());
+
+                // Formatar a mensagem de erro com as datas conflitantes
+                StringBuilder errorMessage = new StringBuilder("O agente já possui um turno nas seguintes datas: ");
+                conflictingDates.forEach(date -> errorMessage.append(date.toString()).append(", "));
+
+                // Remover a última vírgula e espaço
+                if (errorMessage.length() > 0) {
+                    errorMessage.setLength(errorMessage.length() - 2);
+                }
+
+                throw new ShiftAlreadyExistsException(errorMessage.toString());
+            }
+
+            // Criar e salvar os turnos para cada data
+            for (LocalDate date : dto.dataTurno()) {
+                TurnEntity entity = TurnEntity.builder()
+                        .tipoTurno(tipoTurno)
+                        .dataTurno(date)
+                        .agent(agent)
+                        .build();
+                TurnEntity savedEntity = turnRepository.save(entity);
+                createdTurnDtos.add(toDto(savedEntity));
+            }
+        }
+
+        // Retornar todos os turnos criados
+        return createdTurnDtos;
     }
 }

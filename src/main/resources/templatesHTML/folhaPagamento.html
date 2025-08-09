@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Demonstrativo de Pagamento de Salário</title>
+    <link href="estiloPessoa.css" rel="stylesheet" type="text/css"/>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 3px solid black; /* Borda externa da tabela */
+            font-size: x-small;
+        }
+
+        th, td {
+            padding: 1pt 4px 1pt 4px; /* Diminuir o espaçamento para reduzir a altura das células */
+            border-right: 1px solid black; /* Borda de separação vertical */
+        }
+
+        th:last-child, td:last-child {
+            border-right: none; /* Remove a borda da última coluna */
+        }
+
+        thead th {
+            border-bottom: 2px solid #000; /* Borda apenas no cabeçalho */
+            text-align: center;
+        }
+
+        tbody td:nth-child(2) { /* Coluna Descrição */
+            text-align: left;
+        }
+
+        tbody td:nth-child(4), tbody td:nth-child(5) { /* Colunas Proventos e Descontos */
+            text-align: right;
+        }
+
+        tbody td:nth-child(1), tbody td:nth-child(3) { /* Colunas Código e Referência */
+            text-align: center;
+        }
+
+        .total-row {
+            border-top: 2px solid black; /* Linha horizontal separando a célula de total */
+        }
+
+        .container-box {
+            display: flex;
+            justify-content: space-between;
+            border: 3px solid black;
+            padding: 5px 10px;
+            margin-bottom: 5px;
+        }
+
+        .header {
+            text-align: left;
+        }
+
+        .header p {
+            margin: 2px 0;
+            font-size: 0.85em;
+        }
+
+        .header span {
+            font-weight: bold;
+            font-size: 0.95em;
+        }
+
+        .title {
+            text-align: right;
+        }
+
+        .title p:first-child {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin: 2px 0;
+        }
+
+        .title p:nth-child(2) {
+            margin: 2px 0;
+            font-size: 0.85em;
+        }
+
+        .title .month-year {
+            font-weight: bold;
+            font-size: 1em;
+        }
+    </style>
+</head>
+<!-- {{#objeto}} -->
+<body>
+<div class="container-box">
+    <div class="header">
+        <p>Nome: <span>{{nomeAgente}}</span></p>
+        <p style="padding-top: 2px">Data Admissão: <span>{{dataAdmissao}}</span></p>
+    </div>
+
+    <div class="title">
+        <p>Demonstrativo de Pagamento</p>
+        <p>Referente ao Mês / Ano:</p>
+        <p class="month-year">{{mesAtual}}</p>
+    </div>
+</div>
+
+<table>
+    <thead>
+    <tr>
+        <th>Código</th>
+        <th>Descrição</th>
+        <th>Referência</th>
+        <th>Proventos</th>
+        <th>Descontos</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- {{#itemsFolhaPagamento}} -->
+    <tr>
+        <td>001</td>
+        <td>{{desItemSalario}}</td>
+        <td>{{priceItemSalario}}</td>
+        <td>{{totalPriceItem}}</td>
+        <td></td>
+    </tr>
+    <!-- {{/itemsFolhaPagamento}} -->
+    <tr class="total-row">
+        <td colspan="3"></td>
+        <td style="text-align: right;">
+            Total dos Vencimentos<br>
+            <span style="float: right;">{{salarioSubtotal}}</span>
+        </td>
+        <td style="text-align: right;">
+            Total dos Descontos<br>
+            <span style="float: right;">{{descontos}}</span>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="3"></td>
+        <td style="text-align: right;border-top: 1px solid black">
+            Total a receber &gt;
+        </td>
+        <td style="text-align: right; font-weight: bold;border-top: 1px solid black">
+            {{salarioSubtotalWithDesc}}
+        </td>
+    </tr>
+
+    <tr class="total-row">
+        <th style="border-top: 2px solid black;">
+            Salario Base<br>
+            <span style="float: right;">{{salarioBase}}</span>
+        </th>
+        <th style="border-top: 2px solid black;">
+            Salario Extra<br>
+            <span style="float: right;">{{extras}}</span>
+        </th>
+        <th style="border-top: 2px solid black;">
+            Benefícios<br>
+            <span style="float: right;">{{adicionas}}</span>
+        </th>
+        <th style="border-top: 2px solid black;">
+            Salario 5%<br>
+            <span style="float: right;">{{salarioCincoPorcento}}</span>
+        </th>
+        <th style="border-top: 2px solid black;">
+            Total Líquido<br>
+            <span style="float: right;">{{salarioLiquido}}</span>
+        </th>
+    </tr>
+    </tbody>
+</table>
+{{/objeto}}
+</body>
+</html>

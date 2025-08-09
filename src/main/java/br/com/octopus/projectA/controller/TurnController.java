@@ -43,7 +43,7 @@ public class TurnController {
 
     @PostMapping
     @Operation(summary = "Create a new turn", description = "Create a new turn with the provided details")
-    public ResponseEntity<TurnDTO> createProject(@RequestBody TurnCreateDTO turnDto) {
+    public ResponseEntity<TurnDTO> createTurn(@RequestBody TurnCreateDTO turnDto) {
         TurnDTO createdTurn = turnService.create(turnDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdTurn);
     }
@@ -60,5 +60,12 @@ public class TurnController {
     public ResponseEntity<Void> deleteProject(@PathVariable Long id) {
         turnService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/inLote")
+    @Operation(summary = "Create new turns in lote", description = "Create a new turns in lote with the provided details")
+    public ResponseEntity<List<TurnDTO>> createTurnsInLote(@RequestBody List<TurnCreateDTO> turnsDto) {
+        List<TurnDTO> createdTurn = turnService.createInLote(turnsDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdTurn);
     }
 }
