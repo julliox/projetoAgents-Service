@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.ArrayList;
@@ -25,6 +26,10 @@ public class UserDetailsImpl implements UserDetails {
 
     public static UserDetailsImpl build(UserEntity user) {
         List<GrantedAuthority> authorities = new ArrayList<>();
+        if (user.getProfile() != null && user.getProfile().getName() != null) {
+            String roleName = "ROLE_" + user.getProfile().getName().toUpperCase();
+            authorities.add(new SimpleGrantedAuthority(roleName));
+        }
         return new UserDetailsImpl(
                 user.getId(),
                 user.getEmail(),
