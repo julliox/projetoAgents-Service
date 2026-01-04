@@ -1,7 +1,9 @@
 package br.com.octopus.projectA.service;
 
+import br.com.octopus.projectA.entity.AgentEntity;
 import br.com.octopus.projectA.entity.PunchEntity;
 import br.com.octopus.projectA.entity.enuns.PunchType;
+import br.com.octopus.projectA.repository.AgentRepository;
 import br.com.octopus.projectA.repository.PunchRepository;
 import br.com.octopus.projectA.suport.dtos.PunchDtos;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,11 +11,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityNotFoundException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -21,6 +26,12 @@ public class PunchService {
 
     @Autowired
     private PunchRepository punchRepository;
+
+    @Autowired
+    private AgentRepository agentRepository;
+
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
     public Optional<PunchEntity> findByIdempotencyKey(String key) {
         return punchRepository.findByIdempotencyKey(key);
@@ -63,7 +74,48 @@ public class PunchService {
                 .createdAt(now)
                 .build();
 
-        return punchRepository.save(entity);
+        PunchEntity savedEntity = punchRepository.save(entity);
+
+        // ----------------------------------------------------
+        // INJEÇÃO DA NOTIFICAÇÃO
+        // ----------------------------------------------------
+        if (savedEntity.getType() == PunchType.ENTRADA) {
+            String agentName = resolveAgentName(agentId);
+            notifyAdminAgentStatusChange(agentId, agentName, "ONLINE");
+        } else if (savedEntity.getType() == PunchType.SAIDA) {
+            String agentName = resolveAgentName(agentId);
+            notifyAdminAgentStatusChange(agentId, agentName, "OFFLINE");
+        }
+
+        return savedEntity;
+    }
+
+    /**
+     * Busca o nome completo do agente com base no ID.
+     */
+    private String resolveAgentName(Long agentId) {
+        try {
+            AgentEntity agent = agentRepository.findById(agentId)
+                    .orElseThrow(() -> new EntityNotFoundException("Agent not found with id " + agentId));
+            return agent.getName() != null ? agent.getName() : "Agente " + agentId;
+        } catch (EntityNotFoundException e) {
+            return "Agente " + agentId;
+        }
+    }
+
+    /**
+     * Envia uma mensagem WebSocket para o tópico de notificação dos Administradores.
+     */
+    private void notifyAdminAgentStatusChange(Long agentId, String agentName, String status) {
+        //payload
+        var payload = Map.of(
+                "agentId", agentId,
+                "agentName", agentName,
+                "status", status,
+                "timestamp", Instant.now().toString(),
+                "message", agentName + " acabou de ficar " + status
+        );
+        messagingTemplate.convertAndSend("/topic/status-agentes", payload);
     }
 
     public PunchDtos.StateResponse getState(Long agentId) {
