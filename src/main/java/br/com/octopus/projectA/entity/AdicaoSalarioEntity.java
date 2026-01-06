@@ -32,7 +32,7 @@ public class AdicaoSalarioEntity {
     @Column(name = "MES_ADICAO")
     private YearMonth mesAdicao;
 
-    @OneToOne
-    @JoinColumn(name = "AGENT_ID")
-    private AgentEntity agent;
+    @ManyToOne
+    @JoinColumn(name = "EMPLOYEE_ID", nullable = false)
+    private EmployeeEntity employee;
 }

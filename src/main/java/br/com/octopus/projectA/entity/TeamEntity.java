@@ -39,11 +39,11 @@ public class TeamEntity {
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-        name = "team_agents",
+        name = "team_employees",
         joinColumns = @JoinColumn(name = "team_id"),
-        inverseJoinColumns = @JoinColumn(name = "agent_id")
+        inverseJoinColumns = @JoinColumn(name = "employee_id")
     )
-    private Set<AgentEntity> agents = new HashSet<>();
+    private Set<EmployeeEntity> employees = new HashSet<>();
 
     @Column(name = "CREATED_AT", nullable = false)
     private LocalDateTime createdAt;

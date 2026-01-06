@@ -1,10 +1,9 @@
 package br.com.octopus.projectA.service;
 
 import br.com.octopus.projectA.Util.ShiftAlreadyExistsException;
-import br.com.octopus.projectA.entity.AgentEntity;
+import br.com.octopus.projectA.entity.EmployeeEntity;
 import br.com.octopus.projectA.entity.TurnEntity;
 import br.com.octopus.projectA.entity.TipoTurnoEntity;
-import br.com.octopus.projectA.repository.AgentRepository;
 import br.com.octopus.projectA.repository.TurnRepository;
 import br.com.octopus.projectA.repository.TipoTurnoRepository;
 import br.com.octopus.projectA.suport.dtos.TipoTurnoDTO;
@@ -30,9 +29,6 @@ public class TurnService {
     private AgentService agentService;
 
     @Autowired
-    private AgentRepository agentRepository;
-
-    @Autowired
     private TipoTurnoRepository tipoTurnoRepository;
 
     /**
@@ -46,12 +42,12 @@ public class TurnService {
     }
 
     /**
-     * Lista todos os turnos de um agente específico.
-     * @param id ID do Agente
+     * Lista todos os turnos de um colaborador específico.
+     * @param id ID do Colaborador
      * @return Lista de TurnDTO
      */
     public List<TurnDTO> findAllTurnsByAgentId(Long id) {
-        return turnRepository.findAllByAgentId(id).stream()
+        return turnRepository.findAllByEmployeeId(id).stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }
@@ -82,15 +78,15 @@ public class TurnService {
      */
     @Transactional
     public TurnDTO create(TurnCreateDTO dto) {
-        // Buscar o agente pelo ID
-        AgentEntity agent = agentService.findById(dto.agentId());
+        // Buscar o colaborador pelo ID
+        EmployeeEntity employee = agentService.findById(dto.agentId());
 
         // Buscar o TipoTurno pelo ID
         TipoTurnoEntity tipoTurno = tipoTurnoRepository.findById(dto.tipoTurnoId())
                 .orElseThrow(() -> new EntityNotFoundException("TipoTurno não encontrado com ID " + dto.tipoTurnoId()));
 
-        // Verificar se já existe algum turno para o agente nas datas fornecidas
-        List<TurnEntity> existingTurns = turnRepository.findByAgentAndDataTurnoIn(agent, dto.dataTurno());
+        // Verificar se já existe algum turno para o colaborador nas datas fornecidas
+        List<TurnEntity> existingTurns = turnRepository.findByEmployeeAndDataTurnoIn(employee, dto.dataTurno());
 
         if (!existingTurns.isEmpty()) {
             // Extrair as datas conflitantes
@@ -99,7 +95,7 @@ public class TurnService {
                     .collect(Collectors.toList());
 
             // Formatar a mensagem de erro com as datas conflitantes
-            StringBuilder errorMessage = new StringBuilder("O agente já possui um turno nas seguintes datas: ");
+            StringBuilder errorMessage = new StringBuilder("O colaborador já possui um turno nas seguintes datas: ");
             conflictingDates.forEach(date -> errorMessage.append(date.toString()).append(", "));
 
             // Remover a última vírgula e espaço
@@ -116,7 +112,7 @@ public class TurnService {
             TurnEntity entity = TurnEntity.builder()
                     .tipoTurno(tipoTurno)
                     .dataTurno(date)
-                    .agent(agent)
+                    .employee(employee)
                     .build();
             TurnEntity savedEntity = turnRepository.save(entity);
             // Opcional: Mapear o último turno criado para retorno
@@ -164,8 +160,8 @@ public class TurnService {
      * @return TurnDTO
      */
     private TurnDTO toDto(TurnEntity entity) {
-        // Obter o nome do agente
-        String nomeAgente = entity.getAgent().getName(); // Supondo que AgentEntity tenha o método getName()
+        // Obter o nome do colaborador
+        String nomeColaborador = entity.getEmployee().getName();
 
         // Converter TipoTurnoEntity para TipoTurnoDTO
         TipoTurnoDTO tipoTurnoDTO = new TipoTurnoDTO(
@@ -179,9 +175,9 @@ public class TurnService {
         return new TurnDTO(
                 entity.getId(),
                 tipoTurnoDTO,
-                nomeAgente,
+                nomeColaborador,
                 entity.getDataTurno(),
-                entity.getAgent().getId()
+                entity.getEmployee().getId()
         );
     }
 
@@ -195,15 +191,15 @@ public class TurnService {
         List<TurnDTO> createdTurnDtos = new ArrayList<>();
 
         for (TurnCreateDTO dto : dtos) {
-            // Buscar o agente pelo ID
-            AgentEntity agent = agentService.findById(dto.agentId());
+            // Buscar o colaborador pelo ID
+            EmployeeEntity employee = agentService.findById(dto.agentId());
 
             // Buscar o TipoTurno pelo ID
             TipoTurnoEntity tipoTurno = tipoTurnoRepository.findById(dto.tipoTurnoId())
                     .orElseThrow(() -> new EntityNotFoundException("TipoTurno não encontrado com ID " + dto.tipoTurnoId()));
 
-            // Verificar se já existe algum turno para o agente nas datas fornecidas
-            List<TurnEntity> existingTurns = turnRepository.findByAgentAndDataTurnoIn(agent, dto.dataTurno());
+            // Verificar se já existe algum turno para o colaborador nas datas fornecidas
+            List<TurnEntity> existingTurns = turnRepository.findByEmployeeAndDataTurnoIn(employee, dto.dataTurno());
 
             if (!existingTurns.isEmpty()) {
                 // Extrair as datas conflitantes
@@ -212,7 +208,7 @@ public class TurnService {
                         .collect(Collectors.toList());
 
                 // Formatar a mensagem de erro com as datas conflitantes
-                StringBuilder errorMessage = new StringBuilder("O agente já possui um turno nas seguintes datas: ");
+                StringBuilder errorMessage = new StringBuilder("O colaborador já possui um turno nas seguintes datas: ");
                 conflictingDates.forEach(date -> errorMessage.append(date.toString()).append(", "));
 
                 // Remover a última vírgula e espaço
@@ -228,7 +224,7 @@ public class TurnService {
                 TurnEntity entity = TurnEntity.builder()
                         .tipoTurno(tipoTurno)
                         .dataTurno(date)
-                        .agent(agent)
+                        .employee(employee)
                         .build();
                 TurnEntity savedEntity = turnRepository.save(entity);
                 createdTurnDtos.add(toDto(savedEntity));

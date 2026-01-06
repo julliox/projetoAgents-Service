@@ -4,10 +4,10 @@ import br.com.octopus.projectA.Util.FormatadorUtil;
 import br.com.octopus.projectA.Util.HTMLToPdf.HtmlToPdfUtil;
 import br.com.octopus.projectA.Util.HTMLToPdf.TipoRenderer;
 import br.com.octopus.projectA.entity.AdicaoSalarioEntity;
-import br.com.octopus.projectA.entity.AgentEntity;
+import br.com.octopus.projectA.entity.EmployeeEntity;
 import br.com.octopus.projectA.entity.TurnEntity;
 import br.com.octopus.projectA.repository.AdicaoSalarioRepository;
-import br.com.octopus.projectA.repository.AgentRepository;
+import br.com.octopus.projectA.repository.EmployeeRepository;
 import br.com.octopus.projectA.repository.TurnRepository;
 import br.com.octopus.projectA.suport.dtos.*;
 import com.itextpdf.text.Document;
@@ -20,6 +20,7 @@ import com.itextpdf.text.DocumentException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityNotFoundException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -40,7 +41,7 @@ public class GeradorPdfService {
     private TurnRepository turnRepository;
 
     @Autowired
-    private AgentRepository agentRepository;
+    private EmployeeRepository employeeRepository;
     @Autowired
     private AdicaoSalarioRepository adicaoSalarioRepository;
 
@@ -103,11 +104,12 @@ public class GeradorPdfService {
         return outputStream.toByteArray();
     }
 
-    public DadosFolhaPagementoDTO geraDadosFolhaPagemento (Long idAgente , YearMonth mesPagamento) {
+    public DadosFolhaPagementoDTO geraDadosFolhaPagemento (Long idColaborador , YearMonth mesPagamento) {
         BigDecimal adicionais = BigDecimal.ZERO;
         DadosFolhaPagementoDTO dadosFolha = new DadosFolhaPagementoDTO();
-        AgentEntity agentEntity = agentRepository.findById(idAgente).get();
-        SalarioDTO salarioDTO = salarioService.calcularSalarioPorAgente(idAgente);
+        EmployeeEntity employeeEntity = employeeRepository.findById(idColaborador)
+                .orElseThrow(() -> new EntityNotFoundException("Colaborador não encontrado com id " + idColaborador));
+        SalarioDTO salarioDTO = salarioService.calcularSalarioPorAgente(idColaborador);
 
         dadosFolha.setSalarioSubtotal(salarioDTO.getSalarioSubTotal());
         dadosFolha.setSalarioLiquido(salarioDTO.getSalarioLiquido());
@@ -118,15 +120,15 @@ public class GeradorPdfService {
 
         dadosFolha.setDescontos(BigDecimal.valueOf(0));
 
-        dadosFolha.setIdAgente(idAgente);
-        dadosFolha.setNomeAgente(agentEntity.getName());
-        dadosFolha.setDataAdmissao(agentEntity.getAdmissionDate().toString());
+        dadosFolha.setIdAgente(idColaborador);
+        dadosFolha.setNomeAgente(employeeEntity.getName());
+        dadosFolha.setDataAdmissao(employeeEntity.getAdmissionDate().toString());
 
         dadosFolha.setMesAtual(FormatadorUtil.formatarYearMonth(mesPagamento));
 
 
         // Calcular a diferença em anos entre a data de admissão e a data atual
-        long anosNaEmpresa = ChronoUnit.YEARS.between(agentEntity.getAdmissionDate(), LocalDate.now());
+        long anosNaEmpresa = ChronoUnit.YEARS.between(employeeEntity.getAdmissionDate(), LocalDate.now());
 
         // Determinar se o agente é Senior ou Junior
         boolean isSenior = anosNaEmpresa >= 1;
@@ -141,18 +143,18 @@ public class GeradorPdfService {
         LocalDate startOfMonth = mesPagamento.atDay(1);
         LocalDate endOfMonth = mesPagamento.atEndOfMonth();
 
-        // Buscar todos os turnos do agente no mês atual
-        List<TurnDTO> turnosDoAgente = turnRepository.findByAgentIdAndDataTurnoBetween(idAgente, startOfMonth, endOfMonth).stream()
+        // Buscar todos os turnos do colaborador no mês atual
+        List<TurnDTO> turnosDoColaborador = turnRepository.findByEmployeeIdAndDataTurnoBetween(idColaborador, startOfMonth, endOfMonth).stream()
                 .map(this::turnToDto)
                 .collect(Collectors.toList());
 
-        // Buscar todas as adições de salário do agente no mês
-        List<AdicaoSalarioDTO> adicaoSalarioDTOS = adicaoSalarioRepository.findAllByAgentIdAndMesAdicao(idAgente, mesPagamento).stream()
+        // Buscar todas as adições de salário do colaborador no mês
+        List<AdicaoSalarioDTO> adicaoSalarioDTOS = adicaoSalarioRepository.findAllByEmployeeIdAndMesAdicao(idColaborador, mesPagamento).stream()
                 .map(this::adicaoSalarioToDTO)
                 .collect(Collectors.toList());
 
         // Agrupar os turnos por tipo
-        Map<TipoTurnoDTO, List<TurnDTO>> turnosAgrupados = turnosDoAgente.stream()
+        Map<TipoTurnoDTO, List<TurnDTO>> turnosAgrupados = turnosDoColaborador.stream()
                 .collect(Collectors.groupingBy(TurnDTO::tipoTurno));
 
         // Popular itemsFolhaPagamento com os turnos
@@ -189,14 +191,14 @@ public class GeradorPdfService {
                 tipoAdicaoDTO,
                 entity.getQtyAdicao(),
                 entity.getMesAdicao(),
-                entity.getAgent().getId(),
-                entity.getAgent().getName()
+                entity.getEmployee().getId(),
+                entity.getEmployee().getName()
         );
     }
 
     private TurnDTO turnToDto(TurnEntity entity) {
-        // Obter o nome do agente
-        String nomeAgente = entity.getAgent().getName(); // Supondo que AgentEntity tenha o método getName()
+        // Obter o nome do colaborador
+        String nomeColaborador = entity.getEmployee().getName();
 
         // Converter TipoTurnoEntity para TipoTurnoDTO
         TipoTurnoDTO tipoTurnoDTO = new TipoTurnoDTO(
@@ -210,9 +212,9 @@ public class GeradorPdfService {
         return new TurnDTO(
                 entity.getId(),
                 tipoTurnoDTO,
-                nomeAgente,
+                nomeColaborador,
                 entity.getDataTurno(),
-                entity.getAgent().getId()
+                entity.getEmployee().getId()
         );
     }
 

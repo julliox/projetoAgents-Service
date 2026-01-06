@@ -9,7 +9,7 @@ import java.util.Optional;
 
 public interface AdicaoSalarioRepository extends JpaRepository<AdicaoSalarioEntity, Long> {
 
-    Optional<AdicaoSalarioEntity> findByAgentIdAndTipoAdicaoIdAndMesAdicao(Long agentId, Long tipoAdicaoId, YearMonth mesAdicao);
+    Optional<AdicaoSalarioEntity> findByEmployeeIdAndTipoAdicaoIdAndMesAdicao(Long employeeId, Long tipoAdicaoId, YearMonth mesAdicao);
 
-    List<AdicaoSalarioEntity> findAllByAgentIdAndMesAdicao(Long agenteId, YearMonth mesAdicao);
+    List<AdicaoSalarioEntity> findAllByEmployeeIdAndMesAdicao(Long employeeId, YearMonth mesAdicao);
 }

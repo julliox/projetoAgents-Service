@@ -14,19 +14,17 @@ import java.time.LocalDate;
 @Data
 @Builder
 @Entity
-@Table(name = "TBL_AGENT")
-public class AgentEntity {
+@Table(name = "TBL_EMPLOYEE")
+public class EmployeeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")
     private Long id;
 
-    @Column(name = "NAME")
-    private String name;
-
-    @Column(name = "EMAIL")
-    private String email;
+    @OneToOne
+    @JoinColumn(name = "USER_ID", nullable = false, unique = true)
+    private UserEntity user;
 
     @Column(name = "PHONE_NUMBER")
     private String phoneNumber;
@@ -41,4 +39,17 @@ public class AgentEntity {
     @Column(name = "STATUS")
     private StatusEnum status;
 
+    // Métodos auxiliares para facilitar acesso aos dados do User
+    public String getName() {
+        return user != null ? user.getName() : null;
+    }
+
+    public String getEmail() {
+        return user != null ? user.getEmail() : null;
+    }
+
+    public Long getUserId() {
+        return user != null ? user.getId() : null;
+    }
 }
+

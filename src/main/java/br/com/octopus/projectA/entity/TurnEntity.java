@@ -29,8 +29,8 @@ public class TurnEntity {
     @Column(name = "DATE")
     private LocalDate dataTurno;
 
-    @OneToOne
-    @JoinColumn(name = "AGENT_ID")
-    private AgentEntity agent;
+    @ManyToOne
+    @JoinColumn(name = "EMPLOYEE_ID", nullable = false)
+    private EmployeeEntity employee;
 
 }

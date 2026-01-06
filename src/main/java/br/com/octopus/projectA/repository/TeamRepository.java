@@ -30,10 +30,10 @@ public interface TeamRepository extends JpaRepository<TeamEntity, Long> {
     @Query("SELECT COUNT(t) FROM TeamEntity t WHERE t.status = :status")
     long countByStatus(@Param("status") TeamStatus status);
 
-    @Query("SELECT COUNT(DISTINCT a) FROM TeamEntity t JOIN t.agents a WHERE t.status = :status")
+    @Query("SELECT COUNT(DISTINCT e) FROM TeamEntity t JOIN t.employees e WHERE t.status = :status")
     long countAgentsByTeamStatus(@Param("status") TeamStatus status);
 
-    @Query("SELECT COUNT(DISTINCT a) FROM TeamEntity t JOIN t.agents a")
+    @Query("SELECT COUNT(DISTINCT e) FROM TeamEntity t JOIN t.employees e")
     long countAllDistinctAgents();
 }
 

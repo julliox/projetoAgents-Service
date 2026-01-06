@@ -1,10 +1,10 @@
 package br.com.octopus.projectA.service;
 
 import br.com.octopus.projectA.entity.AdicaoSalarioEntity;
-import br.com.octopus.projectA.entity.AgentEntity;
+import br.com.octopus.projectA.entity.EmployeeEntity;
 import br.com.octopus.projectA.entity.TurnEntity;
 import br.com.octopus.projectA.repository.AdicaoSalarioRepository;
-import br.com.octopus.projectA.repository.AgentRepository;
+import br.com.octopus.projectA.repository.EmployeeRepository;
 import br.com.octopus.projectA.repository.TipoAdicaoRepository;
 import br.com.octopus.projectA.repository.TurnRepository;
 import br.com.octopus.projectA.suport.dtos.*;
@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 public class SalarioService {
 
     @Autowired
-    private AgentRepository agenteRepository;
+    private EmployeeRepository employeeRepository;
 
     @Autowired
     private TurnRepository turnoRepository;
@@ -42,10 +42,10 @@ public class SalarioService {
      * @return Lista de SalarioDTO contendo o salário de cada agente.
      */
     public List<SalarioDTO> calcularSalariosDoMesAtual(DataEscolhidaDTO dataEscolhidaDTO) {
-        // Obter a lista completa de agentes na base
-        List<AgentEntity> listaAgentes = agenteRepository.findAll();
+        // Obter a lista completa de colaboradores na base
+        List<EmployeeEntity> listaColaboradores = employeeRepository.findAll();
 
-        // Lista para armazenar o salário calculado de cada agente
+        // Lista para armazenar o salário calculado de cada colaborador
         List<SalarioDTO> listaSalarios = new ArrayList<>();
 
         int anoEscolhido = dataEscolhidaDTO.getAnoEscolhido();
@@ -55,16 +55,16 @@ public class SalarioService {
         LocalDate startOfMonth = selectedYearMonth.atDay(1);
         LocalDate endOfMonth = selectedYearMonth.atEndOfMonth();
 
-        for (AgentEntity agente : listaAgentes) {
-            // Buscar todos os turnos do agente no mês anterior
-            List<TurnEntity> turnosDoAgente = turnoRepository.findByAgentIdAndDataTurnoBetween(
-                    agente.getId(), startOfMonth, endOfMonth
+        for (EmployeeEntity colaborador : listaColaboradores) {
+            // Buscar todos os turnos do colaborador no mês
+            List<TurnEntity> turnosDoColaborador = turnoRepository.findByEmployeeIdAndDataTurnoBetween(
+                    colaborador.getId(), startOfMonth, endOfMonth
             );
 
             // Calcular a diferença em anos entre a data de admissão e a data atual
-            long anosNaEmpresa = ChronoUnit.YEARS.between(agente.getAdmissionDate(), LocalDate.now());
+            long anosNaEmpresa = ChronoUnit.YEARS.between(colaborador.getAdmissionDate(), LocalDate.now());
 
-            // Determinar se o agente é Senior ou Junior
+            // Determinar se o colaborador é Senior ou Junior
             boolean isSenior = anosNaEmpresa >= 1;
 
             // Calcular o salário usando BigDecimal
@@ -74,7 +74,7 @@ public class SalarioService {
             BigDecimal salarioLiquido = BigDecimal.ZERO;
             BigDecimal salarioCincoPorcento = BigDecimal.ZERO;
 
-            for (TurnEntity turno : turnosDoAgente) {
+            for (TurnEntity turno : turnosDoColaborador) {
                 if (!turno.getTipoTurno().getDescricao().startsWith("EXTRA") && !turno.getTipoTurno().getDescricao().startsWith("FERIADO")) {
                     if (isSenior) {
                         salarioBase = salarioBase.add(turno.getTipoTurno().getValorSenior());
@@ -97,8 +97,8 @@ public class SalarioService {
 
             // Adicionar ao DTO
             SalarioDTO salarioDTO = new SalarioDTO(
-                    agente.getId(),
-                    agente.getName(),
+                    colaborador.getId(),
+                    colaborador.getName(),
                     salarioBase,
                     salarioExtra,
                     salarioSubtotal,
@@ -114,19 +114,16 @@ public class SalarioService {
     }
 
     /**
-     * Calcula o salário de um único agente com base nos turnos do mês atual.
+     * Calcula o salário de um único colaborador com base nos turnos do mês atual.
      *
-     * @param agenteId ID do agente.
-     * @return SalarioDTO contendo o salário do agente.
-     * @throws IllegalArgumentException se o agente não for encontrado.
+     * @param agenteId ID do colaborador (mantido para compatibilidade).
+     * @return SalarioDTO contendo o salário do colaborador.
+     * @throws IllegalArgumentException se o colaborador não for encontrado.
      */
     public SalarioDTO calcularSalarioPorAgente(Long agenteId) {
-        // Buscar o agente pelo ID
-        Optional<AgentEntity> agenteOpt = agenteRepository.findById(agenteId);
-        if (!agenteOpt.isPresent()) {
-            throw new IllegalArgumentException("Agente com ID " + agenteId + " não encontrado.");
-        }
-        AgentEntity agente = agenteOpt.get();
+        // Buscar o colaborador pelo ID
+        EmployeeEntity colaborador = employeeRepository.findById(agenteId)
+                .orElseThrow(() -> new IllegalArgumentException("Colaborador com ID " + agenteId + " não encontrado."));
 
         // Determinar o primeiro e o último dia do mês atual
         //TODO ARRUMAR AQUI
@@ -134,13 +131,13 @@ public class SalarioService {
         LocalDate startOfMonth = currentYearMonth.atDay(1);
         LocalDate endOfMonth = currentYearMonth.atEndOfMonth();
 
-        // Buscar todos os turnos do agente no mês atual
-        List<TurnEntity> turnosDoAgente = turnoRepository.findByAgentIdAndDataTurnoBetween(agenteId, startOfMonth, endOfMonth);
+        // Buscar todos os turnos do colaborador no mês atual
+        List<TurnEntity> turnosDoColaborador = turnoRepository.findByEmployeeIdAndDataTurnoBetween(agenteId, startOfMonth, endOfMonth);
 
         // Calcular a diferença em anos entre a data de admissão e a data atual
-        long anosNaEmpresa = ChronoUnit.YEARS.between(agente.getAdmissionDate(), LocalDate.now());
+        long anosNaEmpresa = ChronoUnit.YEARS.between(colaborador.getAdmissionDate(), LocalDate.now());
 
-        // Determinar se o agente é Senior ou Junior
+        // Determinar se o colaborador é Senior ou Junior
         boolean isSenior = anosNaEmpresa >= 1;
 
         // Calcular o salário usando BigDecimal
@@ -149,7 +146,7 @@ public class SalarioService {
         BigDecimal salarioSubtotal = BigDecimal.ZERO;
         BigDecimal salarioLiquido = BigDecimal.ZERO;
         BigDecimal salarioCincoPorcento = BigDecimal.ZERO;
-        for (TurnEntity turno : turnosDoAgente) {
+        for (TurnEntity turno : turnosDoColaborador) {
             if (!turno.getTipoTurno().getDescricao().startsWith("EXTRA") && !turno.getTipoTurno().getDescricao().startsWith("FERIADO")) {
                 if (isSenior) {
                     salarioBase = salarioBase.add(turno.getTipoTurno().getValorSenior());
@@ -176,7 +173,7 @@ public class SalarioService {
         }
 
         List<AdicaoSalarioDTO> novaLista = adicaoSalarioRepository
-                .findAllByAgentIdAndMesAdicao(agenteId, currentYearMonth)
+                .findAllByEmployeeIdAndMesAdicao(agenteId, currentYearMonth)
                 .stream()
                 .map(this::adicaoSalarioToDTO)
                 .toList();
@@ -191,8 +188,8 @@ public class SalarioService {
 
         // Adicionar ao DTO
         SalarioDTO salarioDTO = new SalarioDTO(
-                agente.getId(),
-                agente.getName(),
+                colaborador.getId(),
+                colaborador.getName(),
                 salarioBase,
                 salarioExtra,
                 salarioSubtotal,
@@ -211,8 +208,8 @@ public class SalarioService {
 
     public AdicaoSalarioDTO createAdicionalsalario(AdicaoSalarioCreateDTO adicaoSalarioDTO) {
 
-        // Verifica se já existe uma adição de salário para o agente, tipo e mês especificados
-        Optional<AdicaoSalarioEntity> existingAdicaoSalario = adicaoSalarioRepository.findByAgentIdAndTipoAdicaoIdAndMesAdicao(
+        // Verifica se já existe uma adição de salário para o colaborador, tipo e mês especificados
+        Optional<AdicaoSalarioEntity> existingAdicaoSalario = adicaoSalarioRepository.findByEmployeeIdAndTipoAdicaoIdAndMesAdicao(
                 adicaoSalarioDTO.getAgentId(),
                 adicaoSalarioDTO.getTipoAdicaoId(),
                 adicaoSalarioDTO.getMesAdicao()
@@ -220,7 +217,7 @@ public class SalarioService {
 
         // Se já existe, lança uma exceção ou retorna uma mensagem de erro
         if (existingAdicaoSalario.isPresent()) {
-            throw new IllegalArgumentException("O agente já possui uma adição de salário para este tipo e mês.");
+            throw new IllegalArgumentException("O colaborador já possui uma adição de salário para este tipo e mês.");
         }
 
         // Cria a nova entidade AdicaoSalarioEntity
@@ -230,8 +227,8 @@ public class SalarioService {
                 .tipoAdicao(tipoAdicaoRepository.findById(adicaoSalarioDTO.getTipoAdicaoId()).orElseThrow(
                         () -> new IllegalArgumentException("Tipo de adição não encontrado.")
                 ))
-                .agent(agenteRepository.findById(adicaoSalarioDTO.getAgentId()).orElseThrow(
-                        () -> new IllegalArgumentException("Agente não encontrado.")
+                .employee(employeeRepository.findById(adicaoSalarioDTO.getAgentId()).orElseThrow(
+                        () -> new IllegalArgumentException("Colaborador não encontrado.")
                 ))
                 .build();
 
@@ -257,8 +254,8 @@ public class SalarioService {
                 tipoAdicaoDTO,
                 entity.getQtyAdicao(),
                 entity.getMesAdicao(),
-                entity.getAgent().getId(),
-                entity.getAgent().getName()
+                entity.getEmployee().getId(),
+                entity.getEmployee().getName()
         );
     }
 

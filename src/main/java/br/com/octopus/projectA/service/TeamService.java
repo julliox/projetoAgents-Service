@@ -1,9 +1,9 @@
 package br.com.octopus.projectA.service;
 
-import br.com.octopus.projectA.entity.AgentEntity;
+import br.com.octopus.projectA.entity.EmployeeEntity;
 import br.com.octopus.projectA.entity.TeamEntity;
 import br.com.octopus.projectA.entity.enuns.TeamStatus;
-import br.com.octopus.projectA.repository.AgentRepository;
+import br.com.octopus.projectA.repository.EmployeeRepository;
 import br.com.octopus.projectA.repository.TeamRepository;
 import br.com.octopus.projectA.suport.dtos.TeamDtos;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +28,7 @@ public class TeamService {
     private TeamRepository teamRepository;
 
     @Autowired
-    private AgentRepository agentRepository;
+    private EmployeeRepository employeeRepository;
 
     /**
      * Lista todas as equipes com paginação e filtros
@@ -62,14 +62,14 @@ public class TeamService {
             throw new IllegalArgumentException("Já existe uma equipe com o nome: " + request.getName());
         }
 
-        // Valida os agentes
-        Set<AgentEntity> agents = new HashSet<>();
+        // Valida os colaboradores
+        Set<EmployeeEntity> employees = new HashSet<>();
         if (request.getAgentIds() != null && !request.getAgentIds().isEmpty()) {
-            List<AgentEntity> foundAgents = agentRepository.findAllById(request.getAgentIds());
-            if (foundAgents.size() != request.getAgentIds().size()) {
-                throw new EntityNotFoundException("Um ou mais agentes não foram encontrados");
+            List<EmployeeEntity> foundEmployees = employeeRepository.findAllById(request.getAgentIds());
+            if (foundEmployees.size() != request.getAgentIds().size()) {
+                throw new EntityNotFoundException("Um ou mais colaboradores não foram encontrados");
             }
-            agents = new HashSet<>(foundAgents);
+            employees = new HashSet<>(foundEmployees);
         }
 
         TeamEntity team = TeamEntity.builder()
@@ -77,7 +77,7 @@ public class TeamService {
                 .workStartTime(request.getWorkStartTime())
                 .workEndTime(request.getWorkEndTime())
                 .status(TeamStatus.ACTIVE)
-                .agents(agents)
+                .employees(employees)
                 .build();
 
         TeamEntity savedTeam = teamRepository.save(team);
@@ -96,21 +96,21 @@ public class TeamService {
             throw new IllegalArgumentException("Já existe uma equipe com o nome: " + request.getName());
         }
 
-        // Atualiza os agentes
-        Set<AgentEntity> agents = new HashSet<>();
+        // Atualiza os colaboradores
+        Set<EmployeeEntity> employees = new HashSet<>();
         if (request.getAgentIds() != null && !request.getAgentIds().isEmpty()) {
-            List<AgentEntity> foundAgents = agentRepository.findAllById(request.getAgentIds());
-            if (foundAgents.size() != request.getAgentIds().size()) {
-                throw new EntityNotFoundException("Um ou mais agentes não foram encontrados");
+            List<EmployeeEntity> foundEmployees = employeeRepository.findAllById(request.getAgentIds());
+            if (foundEmployees.size() != request.getAgentIds().size()) {
+                throw new EntityNotFoundException("Um ou mais colaboradores não foram encontrados");
             }
-            agents = new HashSet<>(foundAgents);
+            employees = new HashSet<>(foundEmployees);
         }
 
         team.setName(request.getName());
         team.setWorkStartTime(request.getWorkStartTime());
         team.setWorkEndTime(request.getWorkEndTime());
         team.setStatus(request.getStatus());
-        team.setAgents(agents);
+        team.setEmployees(employees);
         team.setUpdatedAt(LocalDateTime.now());
 
         TeamEntity savedTeam = teamRepository.save(team);
@@ -184,8 +184,8 @@ public class TeamService {
         response.setCreatedAt(entity.getCreatedAt());
         response.setUpdatedAt(entity.getUpdatedAt());
         
-        // Converte agentes para AgentSummary
-        List<TeamDtos.AgentSummary> agentSummaries = entity.getAgents().stream()
+        // Converte colaboradores para AgentSummary
+        List<TeamDtos.AgentSummary> agentSummaries = entity.getEmployees().stream()
                 .map(this::toAgentSummary)
                 .collect(Collectors.toList());
         response.setAgents(agentSummaries);
@@ -193,20 +193,20 @@ public class TeamService {
         // Calcula campos adicionais
         response.setWorkTimeFormatted(formatWorkTime(entity.getWorkStartTime(), entity.getWorkEndTime()));
         response.setDurationHours(calculateShiftDuration(entity.getWorkStartTime(), entity.getWorkEndTime()));
-        response.setAgentsCount(entity.getAgents().size());
+        response.setAgentsCount(entity.getEmployees().size());
 
         return response;
     }
 
     /**
-     * Converte AgentEntity para AgentSummary
+     * Converte EmployeeEntity para AgentSummary
      */
-    private TeamDtos.AgentSummary toAgentSummary(AgentEntity agent) {
+    private TeamDtos.AgentSummary toAgentSummary(EmployeeEntity employee) {
         TeamDtos.AgentSummary summary = new TeamDtos.AgentSummary();
-        summary.setId(agent.getId());
-        summary.setName(agent.getName());
-        summary.setEmail(agent.getEmail());
-        summary.setPhoneNumber(agent.getPhoneNumber());
+        summary.setId(employee.getId());
+        summary.setName(employee.getName());
+        summary.setEmail(employee.getEmail());
+        summary.setPhoneNumber(employee.getPhoneNumber());
         return summary;
     }
 

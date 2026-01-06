@@ -1,9 +1,9 @@
 package br.com.octopus.projectA.service;
 
-import br.com.octopus.projectA.entity.AgentEntity;
+import br.com.octopus.projectA.entity.EmployeeEntity;
 import br.com.octopus.projectA.entity.PunchEntity;
 import br.com.octopus.projectA.entity.enuns.PunchType;
-import br.com.octopus.projectA.repository.AgentRepository;
+import br.com.octopus.projectA.repository.EmployeeRepository;
 import br.com.octopus.projectA.repository.PunchRepository;
 import br.com.octopus.projectA.suport.dtos.PunchDtos;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +28,7 @@ public class PunchService {
     private PunchRepository punchRepository;
 
     @Autowired
-    private AgentRepository agentRepository;
+    private EmployeeRepository employeeRepository;
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
@@ -91,15 +91,17 @@ public class PunchService {
     }
 
     /**
-     * Busca o nome completo do agente com base no ID.
+     * Busca o nome completo do colaborador com base no userId (agentId no contexto de ponto).
+     * O agentId no PunchEntity referencia User.id, então buscamos EmployeeEntity pelo userId.
      */
     private String resolveAgentName(Long agentId) {
         try {
-            AgentEntity agent = agentRepository.findById(agentId)
-                    .orElseThrow(() -> new EntityNotFoundException("Agent not found with id " + agentId));
-            return agent.getName() != null ? agent.getName() : "Agente " + agentId;
+            // agentId é na verdade userId, então buscamos o employee pelo userId
+            EmployeeEntity employee = employeeRepository.findByUser_Id(agentId)
+                    .orElseThrow(() -> new EntityNotFoundException("Employee not found with userId " + agentId));
+            return employee.getName() != null ? employee.getName() : "Colaborador " + agentId;
         } catch (EntityNotFoundException e) {
-            return "Agente " + agentId;
+            return "Colaborador " + agentId;
         }
     }
 

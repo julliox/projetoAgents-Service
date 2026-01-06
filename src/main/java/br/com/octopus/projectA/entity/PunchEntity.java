@@ -23,7 +23,8 @@ public class PunchEntity {
     @Column(name = "ID")
     private UUID id;
 
-    // Atenção: agentId corresponde a User.id
+    // Referencia User.id (o usuário autenticado que registra o ponto)
+    // Para obter dados do colaborador, buscar EmployeeEntity pelo userId
     @Column(name = "AGENT_ID", nullable = false)
     private Long agentId;
 

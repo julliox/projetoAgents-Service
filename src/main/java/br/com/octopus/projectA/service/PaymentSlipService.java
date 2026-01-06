@@ -32,7 +32,7 @@ public class PaymentSlipService {
         LocalDate endOfMonth = currentYearMonth.atEndOfMonth();
         LocalDate oneYearAgo = currentDate.minusYears(1);
 
-        List<Object[]> results = turnRepository.findPaymentSlipsByAgentAndMonthNative(agentId, oneYearAgo, startOfMonth, endOfMonth);
+        List<Object[]> results = turnRepository.findPaymentSlipsByEmployeeAndMonthNative(agentId, oneYearAgo, startOfMonth, endOfMonth);
         List<PaymentSlipDTO> paymentSlips = new ArrayList<>();
 
         for (Object[] row : results) {
