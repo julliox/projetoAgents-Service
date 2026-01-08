@@ -126,8 +126,7 @@ public class SalarioService {
                 .orElseThrow(() -> new IllegalArgumentException("Colaborador com ID " + agenteId + " não encontrado."));
 
         // Determinar o primeiro e o último dia do mês atual
-        //TODO ARRUMAR AQUI
-        YearMonth currentYearMonth = YearMonth.now().minusMonths(1);
+        YearMonth currentYearMonth = YearMonth.now();
         LocalDate startOfMonth = currentYearMonth.atDay(1);
         LocalDate endOfMonth = currentYearMonth.atEndOfMonth();
 
