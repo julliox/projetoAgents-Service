@@ -12,4 +12,6 @@ public interface AdicaoSalarioRepository extends JpaRepository<AdicaoSalarioEnti
     Optional<AdicaoSalarioEntity> findByEmployeeIdAndTipoAdicaoIdAndMesAdicao(Long employeeId, Long tipoAdicaoId, YearMonth mesAdicao);
 
     List<AdicaoSalarioEntity> findAllByEmployeeIdAndMesAdicao(Long employeeId, YearMonth mesAdicao);
+
+    List<AdicaoSalarioEntity> findAllByEmployeeId(Long employeeId);
 }

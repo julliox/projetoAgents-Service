@@ -2,6 +2,7 @@ package br.com.octopus.projectA.service;
 
 import br.com.octopus.projectA.entity.AdicaoSalarioEntity;
 import br.com.octopus.projectA.entity.EmployeeEntity;
+import br.com.octopus.projectA.entity.TipoAdicaoEntity;
 import br.com.octopus.projectA.entity.TurnEntity;
 import br.com.octopus.projectA.repository.AdicaoSalarioRepository;
 import br.com.octopus.projectA.repository.EmployeeRepository;
@@ -236,6 +237,91 @@ public class SalarioService {
 
         // Retorna o DTO correspondente
         return adicaoSalarioToDTO(adicaoSalarioEntity);
+    }
+
+    /**
+     * Busca todas as adições de salário.
+     * @return Lista de AdicaoSalarioDTO
+     */
+    public List<AdicaoSalarioDTO> getAllAdicaoSalario() {
+        return adicaoSalarioRepository.findAll()
+                .stream()
+                .map(this::adicaoSalarioToDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Busca uma adição de salário por ID.
+     * @param id ID da adição de salário
+     * @return AdicaoSalarioDTO
+     */
+    public AdicaoSalarioDTO getAdicaoSalarioById(Long id) {
+        AdicaoSalarioEntity entity = adicaoSalarioRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Adição de salário não encontrada com ID " + id));
+        return adicaoSalarioToDTO(entity);
+    }
+
+    /**
+     * Busca todas as adições de salário de um colaborador.
+     * @param employeeId ID do colaborador
+     * @return Lista de AdicaoSalarioDTO
+     */
+    public List<AdicaoSalarioDTO> getAllAdicaoSalarioByEmployeeId(Long employeeId) {
+        return adicaoSalarioRepository.findAllByEmployeeId(employeeId)
+                .stream()
+                .map(this::adicaoSalarioToDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Atualiza uma adição de salário existente.
+     * @param id ID da adição de salário a ser atualizada
+     * @param updateDTO DTO com os novos dados
+     * @return AdicaoSalarioDTO atualizado
+     */
+    public AdicaoSalarioDTO updateAdicaoSalario(Long id, AdicaoSalarioUpdateDTO updateDTO) {
+        AdicaoSalarioEntity existingEntity = adicaoSalarioRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Adição de salário não encontrada com ID " + id));
+
+        // Verifica se está tentando atualizar para um tipo/mês que já existe (exceto o próprio registro)
+        if (updateDTO.getTipoAdicaoId() != null && updateDTO.getMesAdicao() != null) {
+            Optional<AdicaoSalarioEntity> existing = adicaoSalarioRepository.findByEmployeeIdAndTipoAdicaoIdAndMesAdicao(
+                    existingEntity.getEmployee().getId(),
+                    updateDTO.getTipoAdicaoId(),
+                    updateDTO.getMesAdicao()
+            );
+            if (existing.isPresent() && !existing.get().getId().equals(id)) {
+                throw new IllegalArgumentException("O colaborador já possui uma adição de salário para este tipo e mês.");
+            }
+        }
+
+        // Atualiza os campos
+        if (updateDTO.getTipoAdicaoId() != null) {
+            TipoAdicaoEntity tipoAdicao = tipoAdicaoRepository.findById(updateDTO.getTipoAdicaoId())
+                    .orElseThrow(() -> new IllegalArgumentException("Tipo de adição não encontrado."));
+            existingEntity.setTipoAdicao(tipoAdicao);
+        }
+
+        if (updateDTO.getQtyAdicao() != null) {
+            existingEntity.setQtyAdicao(updateDTO.getQtyAdicao());
+        }
+
+        if (updateDTO.getMesAdicao() != null) {
+            existingEntity.setMesAdicao(updateDTO.getMesAdicao());
+        }
+
+        AdicaoSalarioEntity updatedEntity = adicaoSalarioRepository.save(existingEntity);
+        return adicaoSalarioToDTO(updatedEntity);
+    }
+
+    /**
+     * Deleta uma adição de salário por ID.
+     * @param id ID da adição de salário a ser deletada
+     */
+    public void deleteAdicaoSalario(Long id) {
+        AdicaoSalarioEntity entity = adicaoSalarioRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Adição de salário não encontrada com ID " + id));
+        adicaoSalarioRepository.delete(entity);
     }
 
     private AdicaoSalarioDTO adicaoSalarioToDTO(AdicaoSalarioEntity entity) {

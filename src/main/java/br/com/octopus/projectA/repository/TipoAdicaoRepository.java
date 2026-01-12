@@ -5,4 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface TipoAdicaoRepository extends JpaRepository<TipoAdicaoEntity, Long> {
 
+    boolean existsByDesTipoAdicao(String desTipoAdicao);
 }
