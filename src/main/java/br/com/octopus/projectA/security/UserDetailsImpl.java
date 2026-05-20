@@ -21,21 +21,24 @@ public class UserDetailsImpl implements UserDetails {
     @JsonIgnore
     private String password;
     private String email;
+    private String name;
     private String profile;
     private Collection<? extends GrantedAuthority> authorities;
 
     public static UserDetailsImpl build(UserEntity user) {
         List<GrantedAuthority> authorities = new ArrayList<>();
+        String profileName = null;
         if (user.getProfile() != null && user.getProfile().getName() != null) {
-            String roleName = "ROLE_" + user.getProfile().getName().toUpperCase();
-            authorities.add(new SimpleGrantedAuthority(roleName));
+            profileName = user.getProfile().getName();
+            authorities.add(new SimpleGrantedAuthority("ROLE_" + profileName.toUpperCase()));
         }
         return new UserDetailsImpl(
                 user.getId(),
                 user.getEmail(),
                 user.getPassword(),
                 user.getEmail(),
-                user.getProfile().getName(),
+                user.getName(),
+                profileName,
                 authorities);
     }
 

@@ -1,9 +1,8 @@
 package br.com.octopus.projectA.controller;
 
 
-import br.com.octopus.projectA.entity.UserEntity;
 import br.com.octopus.projectA.security.JwtProvider;
-import br.com.octopus.projectA.service.UserService;
+import br.com.octopus.projectA.security.UserDetailsImpl;
 import br.com.octopus.projectA.suport.dtos.JwtDTO;
 import br.com.octopus.projectA.suport.dtos.LoginDTO;
 import lombok.extern.log4j.Log4j2;
@@ -13,7 +12,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -26,16 +24,10 @@ public class AutenticacaoController {
 
 
     @Autowired
-    PasswordEncoder passwordEncoder;
-
-    @Autowired
     JwtProvider jwtProvider;
 
     @Autowired
     AuthenticationManager authenticationManager;
-
-    @Autowired
-    UserService userService;
 
 //    @PostMapping
 //    public ResponseEntity<Object> cadastrarNovo(@RequestBody @Valid UsuarioDTO usuarioDto) {
@@ -57,12 +49,14 @@ public class AutenticacaoController {
 
     @PostMapping("/login")
     public ResponseEntity<JwtDTO> authenticateUser(@Valid @RequestBody LoginDTO loginDto) {
-        passwordEncoder.encode(loginDto.getSenha());
-        UserEntity userEntity = userService.findByEmail(loginDto.getEmail());
+        log.info("Login attempt for email={}", loginDto.getEmail());
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getSenha()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = jwtProvider.generateJwt(authentication, userEntity);
+
+        UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
+        String jwt = jwtProvider.generateJwt(userPrincipal);
+        log.info("Login successful for userId={}", userPrincipal.getId());
         return ResponseEntity.ok(new JwtDTO(jwt));
     }
 

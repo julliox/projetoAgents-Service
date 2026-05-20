@@ -1,10 +1,8 @@
 package br.com.octopus.projectA.security;
 
-import br.com.octopus.projectA.entity.UserEntity;
 import io.jsonwebtoken.*;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 import java.util.Date;
 import java.util.UUID;
@@ -18,17 +16,16 @@ public class JwtProvider {
     @Value("${sga.auth.jwtExpirationMs}")
     private Long jwtExpirationMs;
 
-    public String generateJwt(Authentication authentication, UserEntity userEntity) {
-        UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
+    public String generateJwt(UserDetailsImpl userPrincipal) {
         return Jwts.builder()
                 .setId(userPrincipal.getId().toString())
-                .setSubject(userPrincipal.getUsername()) // Email de usuário
-                .setAudience(userPrincipal.getEmail()) // Email como audiência
-                .setIssuedAt(new Date()) // Data de emissão
-                .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs)) // Data de expiração
-                .signWith(SignatureAlgorithm.HS512, jwtSecret) // Algoritmo de assinatura e chave secreta
-                .claim("profile", userEntity.getProfile())
-                .claim("name", userEntity.getName())// Adicionando o perfil do usuário
+                .setSubject(userPrincipal.getUsername())
+                .setAudience(userPrincipal.getEmail())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
+                .signWith(SignatureAlgorithm.HS512, jwtSecret)
+                .claim("profile", userPrincipal.getProfile())
+                .claim("name", userPrincipal.getName())
                 .compact();
     }
 
